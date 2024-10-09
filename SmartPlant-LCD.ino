@@ -86,7 +86,7 @@ int timeFrame = 1000;
 void setup() {
     Serial.begin(9600);         // open serial port, set the baud rate to 9600 bps
     analogReference(EXTERNAL);  // Set the aref to external source
-    lcd.begin(16, 2);           //Indicate catode, anode for LCD screen.
+    lcd.begin(16, 2);           //Indicate the type of LCD we are using.
     lcd.print("Smart Plant 1.0");
     delay(timeFrameStart);
     lcd.clear();
