@@ -4,7 +4,8 @@ This is for working with a LCD screen with IC2 adapter.
 */
 
 //Libraries
-#include <LiquidCrystal_I2C.h>      //Library for the LCD screen.
+#include <Wire.h>               //Library for I2C
+#include <LiquidCrystal_I2C.h>  //Library for the LCD screen.
 #include <DHT.h>                //Library for DHT11 sensor.
 
 //Pins used in the card by the sensors.
