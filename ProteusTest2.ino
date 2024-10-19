@@ -9,9 +9,9 @@ This is for working with a LCD screen with IC2 adapter.
 #include <DHT.h>                //Library for DHT11 sensor.
 
 //Pins used in the card by the sensors.
-#define dht11SensorPin 8     //Pin for DHT11
-#define lightSensorPin A0    //Pin for Light Sensor (LDR)
-#define moistSensorPin A1    //Pin for Moisture Sensor
+#define dht11SensorPin 8     //Pin for DHT11 - Digital Pin
+#define lightSensorPin 9     //Pin for Light Sensor (LDR) - Digital Pin
+#define moistSensorPin A0    //Pin for Moisture Sensor - Analog Pin
 
 /*
  * Objects
@@ -19,7 +19,7 @@ This is for working with a LCD screen with IC2 adapter.
 
 // Creates LCD object with address and 16 columns x 2 rows
 // Depending on where it will be executed, next line may need to be uncommented or commented
-//LiquidCrystal_I2C lcd(0x3F,16,2);       //0x3f is for real hardware      
+//LiquidCrystal_I2C lcd(0x27,16,2);       //0x27 is for Arduino Uno R4 wifi as per i2c-scanner.ino
 LiquidCrystal_I2C lcd(0x20,16,2);        //0x20 is for I2C simulation in proteus
 DHT dht11(dht11SensorPin, DHT11);       //Object for DHT11
 
@@ -27,12 +27,36 @@ DHT dht11(dht11SensorPin, DHT11);       //Object for DHT11
  * Calibration values for the sensors
  */
 
- //Calibration value for LDR sensor
-const int day = 500;            //Must be updated according to calibration.
+/*
+ * Photo Resistor Sensor:
+ * ----------------------
 
-//Calibration values for the moisture sensor
-const int AirValue = 0;          //Must be updated according to calibration.
-const int WaterValue = 1019;     //Must be updated according to calibration.
+ * Output of sensor is either 1 or 0.
+ * 0 = day time/light is on
+ * 1 = night time/light is off
+*/
+const int day = 0;      // day time is 0
+
+/*
+ * Soil Moisture Sensor:
+ * ----------------------
+
+ * Output of sensor is either 0 (water) or 1023 (air) by theory.
+ 
+ * Calibration results with small pot with soil.
+ *
+ * 100 = full in water
+ * 194 = soil 100% moistured
+ * 200 = soil 100% moistured
+ * 200 = soil 100% moistured
+ * 330 = soil 100% moistured
+ * 900 = soil 100% dry
+ * 1020 = full in air (in dry soil)
+ 
+*/
+const int WaterValue = 330;     // According to calibration
+const int AirValue = 900;       // According to calibration
+
 
 /*
  * Global Variables
@@ -43,7 +67,7 @@ float humidity = 0.0;
 float temperature = 0.0;
 
 // Variable for LDR sensor
-int lightValue = 0;
+int photoPeriod = 0;            //Photo period as day time by default.
 
 // Variables for moisture sensor
 int soilMoistureValue = 0;
@@ -61,11 +85,11 @@ int timeFrameReadings = 1000;
 void setup() {
     Serial.begin(9600);         // open serial port, set the baud rate to 9600 bps
     
-    //LCD initialization
+    // LCD initialization
     lcd.init();           //Indicate the type of LCD we are using and start the screen.
     lcd.backlight();      //Turn on the backlight
 
-    //Welcome message in LCD
+    // Welcome message in LCD
     lcd.setCursor(0,0);
     lcd.print("Welcome to");
     lcd.setCursor(0,1);
@@ -80,8 +104,9 @@ void setup() {
     delay(timeFrameStart);
     lcd.clear();
     
-    //DHT11 Initialization
-    dht11.begin();
+    // Sensors Initialization
+    dht11.begin();                      // DHT11 Initialization
+    pinMode(lightSensorPin, INPUT);     // LDR Pin Initialization
 }
 
 /*
@@ -92,15 +117,15 @@ void loop() {
     Serial.println("Smart Plant 1.0");
 
     // Reading DHT11 values
-    humidity = dht11.readHumidity();
-    temperature = dht11.readTemperature(); //in celcius
+    humidity = dht11.readHumidity();        // Read humidity
+    temperature = dht11.readTemperature();  // Read temperature
 
     // Reading LDR values
-    lightValue = analogRead(lightSensorPin);
+    photoPeriod = digitalRead(lightSensorPin); // Read light sensor value
 
     // Reading Moisture values
     soilMoistureValue = analogRead(moistSensorPin);
-    soilMoisturePercent = map(soilMoistureValue, AirValue, WaterValue, 0, 100);     // Calculating moisture percentage according to calibration values
+    soilMoisturePercent = map(soilMoistureValue, WaterValue, AirValue, 0, 100);     // Calculate moisture percentage according to calibration values
     
     /*
      *Printing to Serial Monitor
@@ -115,10 +140,10 @@ void loop() {
     Serial.println(" *C");
 
     // Light Photoresistor
-    Serial.print("Raw lightValue: ");
-    Serial.println(lightValue);
+    Serial.print("LDR Raw Value: ");
+    Serial.println(photoPeriod);
     // Photoperiod
-    if (lightValue >= day){
+    if (photoPeriod == day){
         Serial.println("Light: Day Time.");
     }
     else{

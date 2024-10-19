@@ -1,7 +1,7 @@
-#include <DHT.h>        //Library for DHT11
-#define DHT11_PIN 8     //Pin for DHT11
+#include <DHT.h>            //Library for DHT11
+#define dht11SensorPin 8   //Pin for DHT11
 
-DHT dht11(DHT11_PIN, DHT11);    //Object for DHT11
+DHT dht11(dht11SensorPin, DHT11);    //Object for DHT11
 
 void setup() { 
     Serial.begin(9600);     // open serial port, set the baud rate to 9600 bps
@@ -25,5 +25,5 @@ void loop() {
     Serial.print("Temperature: ");
     Serial.print(t);
     Serial.println(" *C ");
-    delay(3000);
+    delay(5000);
 }

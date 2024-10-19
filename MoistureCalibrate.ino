@@ -1,3 +1,26 @@
+#define moistSensorPin A0
+
+/*
+ * Soil Moisture Sensor:
+ * ----------------------
+
+ * Output of sensor is either 0 (water) or 1023 (air) by theory.
+ *
+ * Must be calibrated with this script to be able to read extreme conditions
+ *
+ * Calibration with small pot with soil
+ *
+ * 100 = full in water
+ * 194 = soil 100% moistured
+ * 200 = soil 100% moistured
+ * 200 = soil 100% moistured
+ * 330 = soil 100% moistured
+ * 880 = soil 100% dry
+ * 1020 = full in air (in dry soil)
+ 
+*/
+
+
 //Setting up the variables to run in the card.
 void setup()
 {
@@ -20,5 +43,5 @@ void loop()
     // Print analog value in serial monitor
     Serial.println(moistureLevel);
     //Set a delay of 2 seconds to space the reading
-    delay(2000);
+    delay(5000);
 }
