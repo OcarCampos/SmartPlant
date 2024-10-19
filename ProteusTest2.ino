@@ -1,10 +1,10 @@
 /*
 Arduino Program for Proteus Testing
-This is for working with a LCD screen without adapter.
+This is for working with a LCD screen with IC2 adapter.
 */
 
 //Libraries
-#include <LiquidCrystal.h>      //Library for the LCD screen.
+#include <LiquidCrystal_I2C.h>      //Library for the LCD screen.
 #include <DHT.h>                //Library for DHT11 sensor.
 
 //Pins used in the card by the sensors.
@@ -15,11 +15,15 @@ This is for working with a LCD screen without adapter.
 /*
  * Objects
  */
-LiquidCrystal lcd(2, 3, 4, 5, 6, 7);    //Object for LiquidCrystal(rs, enable, d4, d5, d6, d7)
+
+// Creates LCD object with address and 16 columns x 2 rows
+// Depending on where it will be executed, next line may need to be uncommented or commented
+//LiquidCrystal_I2C lcd(0x3F,16,2);       //0x3f is for real hardware      
+LiquidCrystal_I2C lcd(0x20,16,2);        //0x20 is for I2C simulation in proteus
 DHT dht11(dht11SensorPin, DHT11);       //Object for DHT11
 
 /*
- *Calibration values for the sensors
+ * Calibration values for the sensors
  */
 
  //Calibration value for LDR sensor
@@ -57,7 +61,8 @@ void setup() {
     Serial.begin(9600);         // open serial port, set the baud rate to 9600 bps
     
     //LCD initialization
-    lcd.begin(16, 2);           //Indicate the type of LCD we are using and start the screen.
+    lcd.init();           //Indicate the type of LCD we are using and start the screen.
+    lcd.backlight();      //Turn on the backlight
 
     //Welcome message in LCD
     lcd.setCursor(0,0);
