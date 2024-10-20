@@ -19,8 +19,8 @@ This is for working with a LCD screen with IC2 adapter.
 
 // Creates LCD object with address and 16 columns x 2 rows
 // Depending on where it will be executed, next line may need to be uncommented or commented
-//LiquidCrystal_I2C lcd(0x27,16,2);       //0x27 is for Arduino Uno R4 wifi as per i2c-scanner.ino
-LiquidCrystal_I2C lcd(0x20,16,2);        //0x20 is for I2C simulation in proteus
+LiquidCrystal_I2C lcd(0x27,16,2);       //0x27 is for Arduino Uno R4 wifi as per i2c-scanner.ino
+//LiquidCrystal_I2C lcd(0x20,16,2);        //0x20 is for I2C simulation in Proteus Software
 DHT dht11(dht11SensorPin, DHT11);       //Object for DHT11
 
 /*
@@ -125,7 +125,7 @@ void loop() {
 
     // Reading Moisture values
     soilMoistureValue = analogRead(moistSensorPin);
-    soilMoisturePercent = map(soilMoistureValue, WaterValue, AirValue, 0, 100);     // Calculate moisture percentage according to calibration values
+    soilMoisturePercent = 100 - map(soilMoistureValue, WaterValue, AirValue, 0, 100);     // Calculate moisture percentage according to calibration values
     
     /*
      *Printing to Serial Monitor
@@ -150,9 +150,10 @@ void loop() {
         Serial.println("Light: Night Time.");
     }
 
-    // Moisture
+    // Moisture Raw Value
     Serial.print("Raw Moisture Value: ");
     Serial.println(soilMoistureValue);
+    // Moisture Percent Value
     Serial.print("Soil Moisture: ");
     Serial.print(soilMoisturePercent);
     Serial.println("%");
@@ -199,7 +200,7 @@ void loop() {
     lcd.clear();
 
     // Light Photoresistor
-    if (lightValue >= day){
+    if (photoPeriod == day){
         lcd.setCursor(0,0);
         lcd.print("Light:");
         lcd.setCursor(0,1);
@@ -219,8 +220,20 @@ void loop() {
     lcd.setCursor(0,0);
     lcd.print("Soil Moisture:");
     lcd.setCursor(0,1);
-    lcd.print(soilMoisturePercent);
-    lcd.print("%");
+    // Moisture Percent 0 or less
+    if(soilMoisturePercent <= 0){
+        lcd.print("0%");
+    }
+    // Moisture Percent more than 0
+    else if(soilMoisturePercent >= 100){
+        lcd.print("100%");
+    }
+    // Moisture Percent between 0 and 100
+    else{
+        lcd.print(soilMoisturePercent);
+        lcd.print("%");
+    }
+
     //Delay before clearing the screen
     delay(timeFrameReadings);
     lcd.clear();
