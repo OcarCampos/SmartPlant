@@ -1,6 +1,9 @@
 /*
-Arduino Program for Proteus Testing
-This is for working with a LCD screen with IC2 adapter.
+Arduino Program for SmartPlant
+Last modified: 11/29/2024
+Working with Arduino Uno R4 wifi
+Sensors used: DHT11, LDR, Moisture
+LCD 16x2 with I2C adapter.
 */
 
 //Libraries
