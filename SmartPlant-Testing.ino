@@ -77,11 +77,16 @@ int photoPeriod = 0;            //Photo period as day time by default.
 int soilMoistureValue = 0;
 int soilMoisturePercent = 0;
 
+// Variables for relay state. Usually High is on and Low is off
+// But in this case after testing we found that High is off and Low is on
+const byte relayOn = LOW;
+const byte relayOff = HIGH;
+
 /*
  * Time Frames in ms.
  */
-int timeFrameStart = 1000;
-int timeFrameReadings = 1000;
+int timeFrameStart = 5000;
+int timeFrameReadings = 5000;
 
 /*
  * Setting up the variables to run in the card.
@@ -112,9 +117,8 @@ void setup() {
     dht11.begin();                      // DHT11 Initialization
     pinMode(lightSensorPin, INPUT);     // LDR Pin Initialization
     pinMode(relayPin, OUTPUT);          // Relay Pin Initialization
-
-    // Start with the relay off
-    digitalWrite(relayPin, LOW);
+    digitalWrite(relayPin, relayOff);   // Set relay to off by default
+    delay(timeFrameStart);
 }
 
 /*
@@ -262,21 +266,25 @@ void loop() {
     // If moisture is less than 40% we pump water for 10 seconds
     if(soilMoisturePercent <= 40){
         // Printing to Serial Monitor
-        Serial.println("Moisture lower than 40%. Pumping water for 10 seconds.");
+        Serial.println("Moisture lower than 40%. Pumping water for 1 seconds.");
         // Printing to LCD
         delay(timeFrameReadings);
         lcd.clear();
         lcd.setCursor(0,0);
-        lcd.print("Soil Moisture below 40%");
+        lcd.print("Plants Dry.");
         lcd.setCursor(0,1);
-        lcd.print("Pumping water 10 seconds.");
-        // Turn on the relay for 10 seconds
-        digitalWrite(relayPin, HIGH);
-        delay(10000);
-        digitalWrite(relayPin, LOW);
+        lcd.print("Watering 1 sec.");
+        // Turn on the relay for 1 second
+        digitalWrite(relayPin, relayOn);
+        delay(1000);
+        digitalWrite(relayPin, relayOff);
+        delay(1000);
+
     }
+    // Make sure relay is off if condition is not met
     else{
-        digitalWrite(relayPin, LOW);
+        digitalWrite(relayPin, relayOff);
+        delay(1000);
     }
 
     /*
