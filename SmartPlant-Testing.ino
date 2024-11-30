@@ -1,6 +1,6 @@
 /*
 Arduino Program for SmartPlant
-Last modified: 11/29/2024
+Last modified: 11/30/2024
 Working with Arduino Uno R4 wifi
 Sensors used: DHT11, LDR, Moisture
 LCD 16x2 with I2C adapter.
@@ -14,6 +14,7 @@ LCD 16x2 with I2C adapter.
 //Pins used in the card by the sensors.
 #define dht11SensorPin 8     //Pin for DHT11 - Digital Pin
 #define lightSensorPin 9     //Pin for Light Sensor (LDR) - Digital Pin
+#define relayPin 10          //Pin for Relay - Digital Pin
 #define moistSensorPin A0    //Pin for Moisture Sensor - Analog Pin
 
 /*
@@ -110,14 +111,36 @@ void setup() {
     // Sensors Initialization
     dht11.begin();                      // DHT11 Initialization
     pinMode(lightSensorPin, INPUT);     // LDR Pin Initialization
+    pinMode(relayPin, OUTPUT);          // Relay Pin Initialization
+
+    // Start with the relay off
+    digitalWrite(relayPin, LOW);
 }
 
 /*
  * Running code.
  */
 void loop() {
-    //Serial Monitor init message
+    /*
+     * Start of readings loop
+     * Initialization messages
+     */
+
+    // Serial Monitor init message
     Serial.println("Smart Plant 1.0");
+
+    // Delay before clearing the screen.
+    delay(timeFrameReadings);
+    lcd.clear();
+    // LCD initialization message
+    lcd.setCursor(0,0);
+    lcd.print("Smart Plant 1.0");
+    lcd.setCursor(0,1);
+    lcd.print("Reading sensors");
+
+    /*
+     * Reading Sensors
+     */
 
     // Reading DHT11 values
     humidity = dht11.readHumidity();        // Read humidity
@@ -130,11 +153,15 @@ void loop() {
     soilMoistureValue = analogRead(moistSensorPin);
     soilMoisturePercent = 100 - map(soilMoistureValue, WaterValue, AirValue, 0, 100);     // Calculate moisture percentage according to calibration values
     
+
     /*
-     *Printing to Serial Monitor
+     * Printing Sensor Values
      */
     
-    // Humidity and Temperature
+    /*
+     *  Humidity and Temperature
+     */
+    // Printing to Serial Monitor
     Serial.print("Air Humidity: ");
     Serial.print(humidity);
     Serial.println(" %\t");
@@ -142,7 +169,31 @@ void loop() {
     Serial.print(temperature);
     Serial.println(" *C");
 
-    // Light Photoresistor
+    // Printing to LCD
+    // Delay before clearing LCD screen
+    delay(timeFrameReadings);
+    lcd.clear();
+    // Printing Air Humidity
+    lcd.setCursor(0,0);
+    lcd.print("Air Humidity:");
+    lcd.setCursor(0,1);
+    lcd.print(humidity);
+    lcd.print("%");
+    
+    //Delay before clearing the screen
+    delay(timeFrameReadings);
+    lcd.clear();   
+    // Printing Temperature
+    lcd.setCursor(0,0);
+    lcd.print("Temperature:");
+    lcd.setCursor(0,1);
+    lcd.print(temperature);
+    lcd.print("*C");
+
+    /*
+     * Light Photoresistor and Photoperiod
+     */
+    // Printing to Serial Monitor
     Serial.print("LDR Raw Value: ");
     Serial.println(photoPeriod);
     // Photoperiod
@@ -153,56 +204,12 @@ void loop() {
         Serial.println("Light: Night Time.");
     }
 
-    // Moisture Raw Value
-    Serial.print("Raw Moisture Value: ");
-    Serial.println(soilMoistureValue);
-    // Moisture Percent Value
-    Serial.print("Soil Moisture: ");
-    Serial.print(soilMoisturePercent);
-    Serial.println("%");
-
-    // Ending readings
-    Serial.println("\*\*\*\*\*\*\*\*\*\*\*\*\*");
-
-    // Time delay before printing to LCD
-    delay(timeFrameReadings);
-
-    /*
-     *Printing to LCD
-     */
-
-    //LCD initialization message
-    lcd.setCursor(0,0);
-    lcd.print("Smart Plant 1.0");
-    lcd.setCursor(0,1);
-    lcd.print("Reading sensors");
-
-    //Delay before clearing the screen
+    // Printing to LCD
+    // Delay before clearing the screen
     delay(timeFrameReadings);
     lcd.clear();
 
-
-    //Humidity
-    lcd.setCursor(0,0);
-    lcd.print("Air Humidity:");
-    lcd.setCursor(0,1);
-    lcd.print(humidity);
-    lcd.print("%");
-    //Delay before clearing the screen
-    delay(timeFrameReadings);
-    lcd.clear();    
-
-    //Temperature
-    lcd.setCursor(0,0);
-    lcd.print("Temperature:");
-    lcd.setCursor(0,1);
-    lcd.print(temperature);
-    lcd.print("*C");
-    //Delay before clearing the screen
-    delay(timeFrameReadings);
-    lcd.clear();
-
-    // Light Photoresistor
+    // Printing Light Photoresistor Value
     if (photoPeriod == day){
         lcd.setCursor(0,0);
         lcd.print("Light:");
@@ -215,11 +222,23 @@ void loop() {
         lcd.setCursor(0,1);
         lcd.print("Night Time.");
     }
-    //Delay before clearing the screen
+
+    /*
+     * Moisture
+     */
+    // Printing to Serial Monitor
+    Serial.print("Raw Moisture Value: ");
+    Serial.println(soilMoistureValue);
+    // Moisture Percent Value
+    Serial.print("Soil Moisture: ");
+    Serial.print(soilMoisturePercent);
+    Serial.println("%");
+
+    // Printing to LCD
+    // Delay before clearing the screen
     delay(timeFrameReadings);
     lcd.clear();
-
-    // Moisture
+    // Printing Moisture Value
     lcd.setCursor(0,0);
     lcd.print("Soil Moisture:");
     lcd.setCursor(0,1);
@@ -237,7 +256,35 @@ void loop() {
         lcd.print("%");
     }
 
-    //Delay before clearing the screen
-    delay(timeFrameReadings);
-    lcd.clear();
+    /*
+     * Logic for turning on or off the relay for the water pump
+     */
+    // If moisture is less than 40% we pump water for 10 seconds
+    if(soilMoisturePercent <= 40){
+        // Printing to Serial Monitor
+        Serial.println("Moisture lower than 40%. Pumping water for 10 seconds.");
+        // Printing to LCD
+        delay(timeFrameReadings);
+        lcd.clear();
+        lcd.setCursor(0,0);
+        lcd.print("Soil Moisture below 40%");
+        lcd.setCursor(0,1);
+        lcd.print("Pumping water 10 seconds.");
+        // Turn on the relay for 10 seconds
+        digitalWrite(relayPin, HIGH);
+        delay(10000);
+        digitalWrite(relayPin, LOW);
+    }
+    else{
+        digitalWrite(relayPin, LOW);
+    }
+
+    /*
+     * End of readings loop
+     */	
+
+    // Printing to Serial Monitor Ending readings
+    Serial.println("\*\*\*\*\*\*\*\*\*\*\*\*\*");
+
+    // Printing to LCD Ending readings
 }
