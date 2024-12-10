@@ -1,6 +1,6 @@
 /*
 Arduino Program for SmartPlant
-Last modified: 11/30/2024
+Last modified: 12/10/2024
 Working with Arduino Uno R4 wifi
 Sensors used: DHT11, LDR, Moisture
 LCD 16x2 with I2C adapter.
@@ -86,7 +86,9 @@ const byte relayOff = HIGH;
  * Time Frames in ms.
  */
 int timeFrameStart = 5000;
-int timeFrameReadings = 5000;
+int timeFramePause = 5000;
+int timeFrameWatering = 5000;
+int timeFrameWaterPause = 15000;
 
 /*
  * Setting up the variables to run in the card.
@@ -103,22 +105,21 @@ void setup() {
     lcd.print("Welcome to");
     lcd.setCursor(0,1);
     lcd.print("Smart Plant 1.0");
+    delay(timeFrameStart);
+    lcd.clear();
 
     // Welcome message in Serial Monitor
     Serial.println("\*\*\*\*\*\*\*\*\*\*\*\*\*");
     Serial.println("Welcome to Smart Plant 1.0");
     Serial.println("\*\*\*\*\*\*\*\*\*\*\*\*\*");
 
-    //Delay before clearing the screen
-    delay(timeFrameStart);
-    lcd.clear();
     
     // Sensors Initialization
     dht11.begin();                      // DHT11 Initialization
     pinMode(lightSensorPin, INPUT);     // LDR Pin Initialization
     pinMode(relayPin, OUTPUT);          // Relay Pin Initialization
     digitalWrite(relayPin, relayOff);   // Set relay to off by default
-    delay(timeFrameStart);
+    delay(timeFrameStart);              // Delay before moving on
 }
 
 /*
@@ -129,23 +130,45 @@ void loop() {
      * Start of readings loop
      * Initialization messages
      */
-
-    // Serial Monitor init message
-    Serial.println("Smart Plant 1.0");
-
-    // Delay before clearing the screen.
-    delay(timeFrameReadings);
-    lcd.clear();
-    // LCD initialization message
-    lcd.setCursor(0,0);
+    Serial.println("Smart Plant 1.0");  // Serial Monitor init message
+    lcd.setCursor(0,0);                 // LCD initialization message
     lcd.print("Smart Plant 1.0");
     lcd.setCursor(0,1);
     lcd.print("Reading sensors");
+    // Delay before clearing LCD screen
+    delay(timeFramePause);
+    lcd.clear();
 
     /*
-     * Reading Sensors
+     * Reading Sensor Values
      */
+    sensor_readings();    
 
+    /*
+     * Printing Sensor Values both to serial monitor and LCD
+     */
+    serial_monitor_printing();
+    lcd_screen_printing();
+
+    /*
+     * Checking if the plant needs to be watered
+     */
+    watering_check();
+
+    /*
+     * End of readings loop
+     */	
+    // Printing to Serial Monitor Ending readings
+    Serial.println("\*\*\*\*\*\*\*\*\*\*\*\*\*");
+    // Printing to LCD Ending readings
+}
+
+/*
+ * Function that reads the sensors values
+ * and assigns them to their respective variables
+ * All assigned variables are global variables, so they can be used in other functions.
+*/
+void sensor_readings() {
     // Reading DHT11 values
     humidity = dht11.readHumidity();        // Read humidity
     temperature = dht11.readTemperature();  // Read temperature
@@ -155,17 +178,15 @@ void loop() {
 
     // Reading Moisture values
     soilMoistureValue = analogRead(moistSensorPin);
-    soilMoisturePercent = 100 - map(soilMoistureValue, WaterValue, AirValue, 0, 100);     // Calculate moisture percentage according to calibration values
-    
+    // Calculate moisture percentage according to calibration values
+    soilMoisturePercent = 100 - map(soilMoistureValue, WaterValue, AirValue, 0, 100);     
+}
 
-    /*
-     * Printing Sensor Values
-     */
-    
-    /*
-     *  Humidity and Temperature
-     */
-    // Printing to Serial Monitor
+/*
+ * Function that prints messages to the serial monitor for debugging.
+ */
+void serial_monitor_printing() {
+    // Humidity and temperature
     Serial.print("Air Humidity: ");
     Serial.print(humidity);
     Serial.println(" %\t");
@@ -173,31 +194,7 @@ void loop() {
     Serial.print(temperature);
     Serial.println(" *C");
 
-    // Printing to LCD
-    // Delay before clearing LCD screen
-    delay(timeFrameReadings);
-    lcd.clear();
-    // Printing Air Humidity
-    lcd.setCursor(0,0);
-    lcd.print("Air Humidity:");
-    lcd.setCursor(0,1);
-    lcd.print(humidity);
-    lcd.print("%");
-    
-    //Delay before clearing the screen
-    delay(timeFrameReadings);
-    lcd.clear();   
-    // Printing Temperature
-    lcd.setCursor(0,0);
-    lcd.print("Temperature:");
-    lcd.setCursor(0,1);
-    lcd.print(temperature);
-    lcd.print("*C");
-
-    /*
-     * Light Photoresistor and Photoperiod
-     */
-    // Printing to Serial Monitor
+    // Light Photoresistor and Photoperiod
     Serial.print("LDR Raw Value: ");
     Serial.println(photoPeriod);
     // Photoperiod
@@ -208,12 +205,41 @@ void loop() {
         Serial.println("Light: Night Time.");
     }
 
-    // Printing to LCD
+    // Moisture
+    Serial.print("Raw Moisture Value: ");
+    Serial.println(soilMoistureValue);
+    // Moisture Percent Value
+    Serial.print("Soil Moisture: ");
+    Serial.print(soilMoisturePercent);
+    Serial.println("%");
+}
+
+/*
+ * Function that prints messages to the LCD screen to keep the user
+ * up to date with the readings.
+ */
+void lcd_screen_printing() {
+    // DHT11 Humidity
+    lcd.setCursor(0,0);
+    lcd.print("Air Humidity:");
+    lcd.setCursor(0,1);
+    lcd.print(humidity);
+    lcd.print("%");
+    //Delay before clearing the screen
+    delay(timeFramePause);
+    lcd.clear(); 
+
+    // DHT11 Temperature
+    lcd.setCursor(0,0);
+    lcd.print("Temperature:");
+    lcd.setCursor(0,1);
+    lcd.print(temperature);
+    lcd.print("*C");
     // Delay before clearing the screen
-    delay(timeFrameReadings);
+    delay(timeFramePause);
     lcd.clear();
 
-    // Printing Light Photoresistor Value
+    // LDR value
     if (photoPeriod == day){
         lcd.setCursor(0,0);
         lcd.print("Light:");
@@ -226,23 +252,11 @@ void loop() {
         lcd.setCursor(0,1);
         lcd.print("Night Time.");
     }
-
-    /*
-     * Moisture
-     */
-    // Printing to Serial Monitor
-    Serial.print("Raw Moisture Value: ");
-    Serial.println(soilMoistureValue);
-    // Moisture Percent Value
-    Serial.print("Soil Moisture: ");
-    Serial.print(soilMoisturePercent);
-    Serial.println("%");
-
-    // Printing to LCD
     // Delay before clearing the screen
-    delay(timeFrameReadings);
+    delay(timeFramePause);
     lcd.clear();
-    // Printing Moisture Value
+
+    // Soil Moisture
     lcd.setCursor(0,0);
     lcd.print("Soil Moisture:");
     lcd.setCursor(0,1);
@@ -259,40 +273,70 @@ void loop() {
         lcd.print(soilMoisturePercent);
         lcd.print("%");
     }
-
-    /*
-     * Logic for turning on or off the relay for the water pump
-     */
-    // If moisture is less than 40% we pump water for 10 seconds
+    // Delay before clearing the screen
+    delay(timeFramePause);
+    lcd.clear();
+}
+/*
+ * Function that checks if the plants needs to be watered
+ * depending on the readings from the soil moisture sensor.
+ *
+ * If moisture is lower than 40% function will turn on the
+ * relay for timeFrameWatering seconds and then turn off the relay.
+ *
+ * Function will wait for timeFrameWaterPause seconds to allow for
+ * water to be absorved by soil before turning on the relay again
+ * watering the plants a second cycle.
+ *
+ * Function will repeat this process a third cycle and move on.
+ *
+ * Total watering time is timeFrameWatering*3 + timeFrameWaterPause*2
+ */
+void watering_check(){
+    // If moisture is less than 40% we pump water
     if(soilMoisturePercent <= 40){
         // Printing to Serial Monitor
-        Serial.println("Moisture lower than 40%. Pumping water for 1 seconds.");
-        // Printing to LCD
-        delay(timeFrameReadings);
-        lcd.clear();
+        Serial.println("Moisture lower than 40%. Watering Plants.");
+        // Printing to LCD first cycle
         lcd.setCursor(0,0);
         lcd.print("Plants Dry.");
         lcd.setCursor(0,1);
-        lcd.print("Watering 1 sec.");
-        // Turn on the relay for 1 second
+        lcd.print("Watering 1st.");
+        // First cycle. Turn on the relay.
         digitalWrite(relayPin, relayOn);
-        delay(1000);
+        delay(timeFrameWatering);
+        // Turn off the relay. Wait for water to absorb.
         digitalWrite(relayPin, relayOff);
-        delay(1000);
-
+        delay(timeFrameWaterPause);
+        lcd.clear();
+        // Printing to LCD second cycle
+        lcd.setCursor(0,0);
+        lcd.print("1st ok!.");
+        lcd.setCursor(0,1);
+        lcd.print("Watering 2nd.");
+        // Second cycle. Turn on the relay.
+        digitalWrite(relayPin, relayOn);
+        delay(timeFrameWatering);
+        // Turn off the relay. Wait for water to absorb.
+        digitalWrite(relayPin, relayOff);
+        delay(timeFrameWaterPause);
+        lcd.clear();
+        // Printing to LCD third cycle
+        lcd.setCursor(0,0);
+        lcd.print("2nd ok!");
+        lcd.setCursor(0,1);
+        lcd.print("Watering 3rd.");
+        // Third cycle. Turn on the relay.
+        digitalWrite(relayPin, relayOn);
+        delay(timeFrameWatering);
+        // Turn off the relay. Wait for water to absorb.
+        digitalWrite(relayPin, relayOff);
+        delay(timeFrameWaterPause);
+        lcd.clear();
     }
     // Make sure relay is off if condition is not met
     else{
         digitalWrite(relayPin, relayOff);
         delay(1000);
     }
-
-    /*
-     * End of readings loop
-     */	
-
-    // Printing to Serial Monitor Ending readings
-    Serial.println("\*\*\*\*\*\*\*\*\*\*\*\*\*");
-
-    // Printing to LCD Ending readings
 }
