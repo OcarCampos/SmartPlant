@@ -336,7 +336,12 @@ void watering_check(){
     }
     // Make sure relay is off if condition is not met
     else{
+        lcd.setCursor(0,0);
+        lcd.print("Plants Hidrated.");
+        lcd.setCursor(0,1);
+        lcd.print("No water need.");
         digitalWrite(relayPin, relayOff);
         delay(1000);
+        lcd.clear();
     }
 }
