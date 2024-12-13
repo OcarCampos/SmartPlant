@@ -15,13 +15,13 @@ In the Arduino IDE, choose Sketch/Include Library/Manage Libraries.
 Click the ThingSpeak Library from the list, and click 
 the Install button.
 
-Last modified: 12/10/2024
+Last modified: 12/13/2024
 */
 
 #include <WiFiS3.h>             // WiFi library for arduino uno
 #include "arduino_secrets.h"    // Secrets file with credentials
 #include <DHT.h>                //Library for DHT11 sensor.
-#include "ThingSpeak.h"         //Library for ThingSpeak
+#include <ThingSpeak.h>         //Library for ThingSpeak
 
 #define dht11SensorPin 8        //Pin for DHT11 - Digital Pin
 
@@ -31,6 +31,7 @@ DHT dht11(dht11SensorPin, DHT11);       //Object for DHT11
 char ssid[] = SECRET_SSID;      // network SSID
 char pass[] = SECRET_PASS;      // network password (use for WPA)
 int status = WL_IDLE_STATUS;    // the WiFi radio's status
+WiFiClient client;              // WiFi client object
 
 // For ThingSpeak
 unsigned long myChannelNumber = SECRET_CH_ID;       // ThingSpeak Channel ID
@@ -42,7 +43,7 @@ float humidity = 0.0;
 float temperature = 0.0;
 
 // Time interval variables to report to Thingspeak
-const long interval = 60000; // 60 seconds interval
+const long interval = 300000; // 5 minutes interval
 unsigned long previousMillis = 0;  // Will store last time information was sent to thingspeak
 
 // For future references
@@ -64,11 +65,15 @@ unsigned long previousMillis = 0;  // Will store last time information was sent 
  */
 void setup() {
     Serial.begin(9600);
-    
+
+    Serial.println("Attempting to connect to WiFi network...");
     connect_to_wifi();              // Try to connect to the wifi given the credentials
 
+    Serial.println("Initializing sensors...");
     dht11.begin();                  // DHT11 Initialization
     ThingSpeak.begin(client);       // ThingSpeak Initialization
+
+    Serial.println("Initialization done. Ready to read sensors.");
     
 }
 
@@ -76,13 +81,13 @@ void setup() {
  * Running code and looping over the DHT11 sensor.
  */
 void loop() {
-    Serial.println("Looping over DHT11 sensor...");
     sensor_readings();              // Read sensor values
-    serial_monitor_printing();      // Print sensor values
     unsigned long currentMillis = millis(); // Get current time
     // If passed time is greater than interval
     if (currentMillis - previousMillis >= interval) {
         previousMillis = currentMillis; // Update previousMillis
+        Serial.println("Current Temp and Humidity...");
+        serial_monitor_printing();      // Print sensor values
         Serial.println("Sending data to ThingSpeak...");
         send_to_thing_speak();          // Send sensor values to ThingSpeak
     }
@@ -120,13 +125,16 @@ void send_to_thing_speak() {
     ThingSpeak.setField(2, humidity);
 
     // Set the status message
-    myStatus = "Data updated successfully.";
+    myStatus = "Data updated successfully!";
     ThingSpeak.setStatus(myStatus);
 
     // Write to ThingSpeak channel.
     int x = ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
-    if (x == 200) {
-        Serial.println("Channel update successful.");
+    delay(1000); // Give some time for the connection to complete
+    Serial.print("Response code: ");
+    Serial.println(x);
+    if (x == 200 || x == 0) {
+        Serial.println("Channel update successful!");
     }
     else {
         Serial.println("Problem updating channel. HTTP error code " + String(x));
@@ -158,7 +166,7 @@ void connect_to_wifi() {
         delay(10000);
     }
     // you're connected now, so print out the data:
-    Serial.println("You're connected to the network");
+    Serial.println("WiFi connection successful!");
     printCurrentNet();
     printWifiData();
 }

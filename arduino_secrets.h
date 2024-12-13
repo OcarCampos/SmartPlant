@@ -6,4 +6,4 @@
 
 // ThingSpeak Credentials
 #define SECRET_WRITE_APIKEY "CIX33881ZNPXQ1C9"
-#define SECRET_CH_ID "2781694"
+#define SECRET_CH_ID 2781694
