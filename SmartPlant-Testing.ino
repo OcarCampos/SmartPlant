@@ -1,6 +1,6 @@
 /*
 Arduino Program for SmartPlant
-Last modified: 12/13/2024
+Last modified: 12/15/2024
 Working with Arduino Uno R4 wifi
 Sensors used: DHT11, LDR, Moisture
 LCD 16x2 with I2C adapter.
@@ -19,7 +19,7 @@ Connection to Wifi and ThingSpeak using secrets.h
 //Pins used in the card by the sensors.
 #define dht11SensorPin 8     //Pin for DHT11 - Digital Pin
 #define lightSensorPin 9     //Pin for Light Sensor (LDR) - Digital Pin
-#define relayPin 10          //Pin for Relay - Digital Pin
+#define relayPin 2           //Pin for Relay - Digital Pin
 #define moistSensorPin A0    //Pin for Moisture Sensor - Analog Pin
 
 /*
@@ -78,8 +78,8 @@ const int day = 0;      // day time is 0
  * 1020 = full in air (in dry soil)
  
 */
-const int WaterValue = 330;     // According to calibration
-const int AirValue = 900;       // According to calibration
+const int WaterValue = 1000;     // According to calibration
+const int AirValue = 330;       // According to calibration
 const int moistureLimit = 45;   // Moisture limit for watering plants. Value in % according to calibration.
 
 
@@ -254,7 +254,7 @@ void sensor_readings() {
     // Reading Moisture values
     soilMoistureValue = analogRead(moistSensorPin);
     // Calculate moisture percentage according to calibration values
-    soilMoisturePercent = 100 - map(soilMoistureValue, WaterValue, AirValue, 0, 100);     
+    soilMoisturePercent = map(soilMoistureValue, WaterValue, AirValue, 0, 100);     
 }
 
 /*
@@ -371,56 +371,35 @@ void watering_check(){
         waterUsage = 0;
         // Printing to Serial Monitor
         Serial.println("Moisture lower than 40%. Watering Plants."); // Not needed in production
-        // Printing to LCD first cycle
-        lcd.setCursor(0,0);
-        lcd.print("Plants Dry.");
-        lcd.setCursor(0,1);
-        lcd.print("Watering 1st.");
         // First cycle. Turn on the relay.
         digitalWrite(relayPin, relayOn);
         delay(intervalWatering);
         // Turn off the relay. Wait for water to absorb.
         digitalWrite(relayPin, relayOff);
         delay(intervalWateringPause);
-        lcd.clear();
         waterUsage = 1;
-        // Printing to LCD second cycle
-        lcd.setCursor(0,0);
-        lcd.print("1st ok!.");
-        lcd.setCursor(0,1);
-        lcd.print("Watering 2nd.");
         // Second cycle. Turn on the relay.
         digitalWrite(relayPin, relayOn);
         delay(intervalWatering);
         // Turn off the relay. Wait for water to absorb.
         digitalWrite(relayPin, relayOff);
         delay(intervalWateringPause);
-        lcd.clear();
         waterUsage = 2;
-        // Printing to LCD third cycle
-        lcd.setCursor(0,0);
-        lcd.print("2nd ok!");
-        lcd.setCursor(0,1);
-        lcd.print("Watering 3rd.");
         // Third cycle. Turn on the relay.
         digitalWrite(relayPin, relayOn);
         delay(intervalWatering);
         // Turn off the relay. Wait for water to absorb.
         digitalWrite(relayPin, relayOff);
         delay(intervalWateringPause);
-        lcd.clear();
         waterUsage = 3;
+        Serial.println("Watering cycle complete."); // Not needed in production
     }
     // Make sure relay is off if condition is not met
     else{
-        lcd.setCursor(0,0);
-        lcd.print("Plants Hidrated.");
-        lcd.setCursor(0,1);
-        lcd.print("No water need.");
         digitalWrite(relayPin, relayOff);
         delay(intervalPause);
-        lcd.clear();
         waterUsage = 0;
+        Serial.println("Moisture higher than 40%. No watering."); // Not needed in production
     }
 }
 
