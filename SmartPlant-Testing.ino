@@ -99,7 +99,7 @@ int soilMoistureValue = 0;
 int soilMoisturePercent = 0;
 
 // Variable for water pump usage
-int waterUsage = 0;             // 0 for no use, 1, 2 or 3 for times it has been used during a watering cycle
+int waterCycles = 0;             // Number of water cycles done by the pump
 
 // Variables for relay state. Usually High is on and Low is off
 // But in this case after testing we found that High is off and Low is on
@@ -368,37 +368,58 @@ void lcd_screen_printing() {
 void watering_check(){
     // If moisture is less than moistureLimit we pump water
     if(soilMoisturePercent <= moistureLimit){
-        waterUsage = 0;
         // Printing to Serial Monitor
         Serial.println("Moisture lower than 40%. Watering Plants."); // Not needed in production
+        lcd.setCursor(0,0);
+        lcd.print("Watering Plants.");
+        lcd.setCursor(0,1);
+        lcd.print("1st cycle...");
         // First cycle. Turn on the relay.
         digitalWrite(relayPin, relayOn);
         delay(intervalWatering);
         // Turn off the relay. Wait for water to absorb.
         digitalWrite(relayPin, relayOff);
         delay(intervalWateringPause);
-        waterUsage = 1;
         // Second cycle. Turn on the relay.
+        lcd.clear();
+        lcd.setCursor(0,0);
+        lcd.print("Watering Plants.");
+        lcd.setCursor(0,1);
+        lcd.print("2nd cycle...");
         digitalWrite(relayPin, relayOn);
         delay(intervalWatering);
         // Turn off the relay. Wait for water to absorb.
         digitalWrite(relayPin, relayOff);
         delay(intervalWateringPause);
-        waterUsage = 2;
         // Third cycle. Turn on the relay.
+        lcd.clear();
+        lcd.setCursor(0,0);
+        lcd.print("Watering Plants.");
+        lcd.setCursor(0,1);
+        lcd.print("3rd cycle...");
         digitalWrite(relayPin, relayOn);
         delay(intervalWatering);
         // Turn off the relay. Wait for water to absorb.
         digitalWrite(relayPin, relayOff);
         delay(intervalWateringPause);
-        waterUsage = 3;
         Serial.println("Watering cycle complete."); // Not needed in production
+        lcd.clear();
+        lcd.setCursor(0,0);
+        lcd.print("Watering Plants.");
+        lcd.setCursor(0,1);
+        lcd.print("Complete...");
+        waterCycles++;
     }
     // Make sure relay is off if condition is not met
     else{
         digitalWrite(relayPin, relayOff);
+        lcd.clear();
+        lcd.setCursor(0,0);
+        lcd.print("Plants Hydrated.");
+        lcd.setCursor(0,1);
+        lcd.print("No water needed.");
         delay(intervalPause);
-        waterUsage = 0;
+        lcd.clear();
         Serial.println("Moisture higher than 40%. No watering."); // Not needed in production
     }
 }
@@ -414,7 +435,7 @@ void watering_check(){
  * 2. Humidity from DHT11 in %
  * 3. Photoperiod from LDR (0 for night time and 1 for day time)
  * 4. Moisture from Moisture sensor in %
- * 5. Water Usage (0 for not used, 1, 2 or 3 for times it has been used. 3 should be a full watering cycle.)
+ * 5. Water Cycles done by the pump until now.
  */
 void send_to_thing_speak() {
     // Set the fields with the values
@@ -430,7 +451,7 @@ void send_to_thing_speak() {
         ThingSpeak.setField(3, 0);
     }
     ThingSpeak.setField(4, soilMoisturePercent);
-    ThingSpeak.setField(5, waterUsage);
+    ThingSpeak.setField(5, waterCycles);
 
     // Set the status message
     myStatus = "Data updated successfully!";
@@ -456,6 +477,9 @@ void send_to_thing_speak() {
     }
     delay(intervalPause);
     lcd.clear();
+
+    //reset water cycles to 0
+    waterCycles = 0;
 }
 
 /*
