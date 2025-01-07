@@ -1,6 +1,7 @@
 /*
-Arduino Program for Proteus Testing
-This is for working with a LCD screen without adapter.
+Script for testing several sensors with the Proteus software.
+Last modified: 01/07/2025
+Working with Simulino Uno in Proteus, DHT11, LDR and Moisture Sensor
 */
 
 //Libraries

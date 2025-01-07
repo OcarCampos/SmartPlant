@@ -1,4 +1,14 @@
-#define moistSensorPin A0
+/*
+Script for the calibration of Soil Moisture Sensor
+Last modified: 01/07/2025
+Working with Arduino Uno R4 wifi
+Sensors used: Custom Soil Moisture sensor made out of lead from a pencil.
+Any resistive soil moisture sensor can be used. Before the lead pencil one
+I used one from aliexpress:
+https://www.aliexpress.com/item/1005006344637182.html
+*/
+
+#define moistSensorPin A0 // Pin for moisture sensor
 
 /*
  * Soil Moisture Sensor:
@@ -7,6 +17,7 @@
  * Output of sensor is either 0 (water) or 1023 (air) by theory.
  *
  * Must be calibrated with this script to be able to read extreme conditions
+ * and validate that 0 is water and 1023 is air.
  *
  * Calibration with small pot with soil
  *
@@ -21,14 +32,13 @@
 */
 
 
-//Setting up the variables to run in the card.
+// Setup of the script
 void setup()
 {
-    // Set the serial monitor baudrate to 9600
-    // This is to be able to monitor the output in the serial monitor
     Serial.begin(9600);
 }
 
+// Loop of the script
 void loop()
 {
     // Variable to store ADC value 
@@ -36,7 +46,7 @@ void loop()
     int moistureLevel;
     // analogRead function returns the integer 10 bit integer (0 to 1023)
     // Read pin A0 where moisture sensor is connected
-    moistureLevel = analogRead(0); 
+    moistureLevel = analogRead(moistSensorPin); 
   
     // Print text in serial monitor
     Serial.println("Moisture Value: ");

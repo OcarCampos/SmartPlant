@@ -1,5 +1,5 @@
 /*
-Arduino Program for SmartPlant
+Arduino Program for SmartPlant Testing.
 Last modified: 12/15/2024
 Working with Arduino Uno R4 wifi
 Sensors used: DHT11, LDR, Moisture

@@ -1,6 +1,6 @@
 # SmartPlant
 
-An Arduino-based smart plant monitoring and automated watering system. This project uses various sensors to monitor plant health and environmental conditions, with data visualization through ThingSpeak and automated watering functionality.
+An Arduino-based garden monitoring and automated watering system. This project uses various sensors to monitor plant health and environmental conditions, with data visualization through ThingSpeak and automated watering functionality.
 
 ## Features
 
