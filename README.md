@@ -86,6 +86,59 @@ The system includes calibrated values for:
   - Moisture Threshold: 45%
 - Light Sensor: Binary output (0 = day, 1 = night)
 
+## Wiring Diagrams
+
+The `Diagrams` folder contains detailed wiring diagrams showing the individual connections for each component to the Arduino UNO R4 WiFi board:
+- DHT11 Temperature and Humidity Sensor connections
+- LDR (Light Dependent Resistor) setup
+- Soil Moisture Sensor wiring
+- LCD Display with I2C adapter connections
+- Relay and Water Pump circuit
+
+These diagrams serve as a visual guide for properly connecting each component to the Arduino board, making the hardware setup process more straightforward.
+
+## 3D Printable Cases
+
+The `3D-Cases` folder contains STL files for 3D printable cases for all components of the project. These cases were sourced from [Printables](https://www.printables.com) and include:
+- Arduino UNO R4 WiFi board case
+- DHT11 sensor housing
+- Soil moisture sensor protection case
+- LDR sensor enclosure
+- LCD display case
+- Relay and water pump housing
+
+These cases provide protection for the electronic components and give the project a professional finish. Each case file includes the original source link to its Printables page where you can find printing recommendations and additional information.
+
+## Development and Testing
+
+The project includes several calibration and testing scripts in the `DevModules` directory:
+
+### Sensor Calibration
+- `Calibrate-DHT11.ino`: Calibration script for the DHT11 temperature and humidity sensor
+- `Calibrate-LDR.ino`: Calibration script for the Light Dependent Resistor
+- `Calibrate-Moist.ino`: Calibration script for the soil moisture sensor
+- `Calibrate-Relay.ino`: Testing script for the relay module and water pump
+
+### Hardware Testing
+- `I2C-Scanner.ino`: Utility to detect I2C devices and their addresses
+- `LCD-I2C-Test.ino`: Testing script for the LCD display with I2C adapter
+- `ProteusTest.ino`: Simulation testing script for Proteus software
+
+### Connectivity Testing
+- `WPA-connect.ino`: WiFi connection testing script
+- `scan_networks.ino`: WiFi network scanning utility
+- `ThingSpeak-Testing.ino`: ThingSpeak connectivity and data transmission testing
+
+### Integration Testing
+- `SmartPlant-Testing.ino`: Complete system testing script with all components
+
+These scripts are essential for:
+- Initial setup and calibration of sensors
+- Troubleshooting hardware connections
+- Testing individual components
+- Verifying WiFi and ThingSpeak connectivity
+- Simulating the system in Proteus before physical implementation
+
 ## Contributing
 
 Feel free to submit issues, fork the repository, and create pull requests for any improvements.
