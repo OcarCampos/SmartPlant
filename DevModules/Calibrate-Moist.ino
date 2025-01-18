@@ -21,24 +21,19 @@ https://www.aliexpress.com/item/1005006344637182.html
  *
  * Calibration with small pot with soil
  *
- * 100 = full in water
- * 194 = soil 100% moistured
- * 200 = soil 100% moistured
- * 200 = soil 100% moistured
- * 330 = soil 100% moistured
- * 880 = soil 100% dry
- * 1020 = full in air (in dry soil)
+ * 266 = full in water
+ * 1021 = full in empty air
  
 */
 
 
-// Setup of the script
+// Setting up the script
 void setup()
 {
     Serial.begin(9600);
 }
 
-// Loop of the script
+// Recurrent loop of the script
 void loop()
 {
     // Variable to store ADC value 
@@ -50,7 +45,7 @@ void loop()
   
     // Print text in serial monitor
     Serial.println("Moisture Value: ");
-    // Print analog value in serial monitor
+    // Print analog value in serial monitor 
     Serial.println(moistureLevel);
     //Set a delay of 2 seconds to space the reading
     delay(5000);
