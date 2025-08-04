@@ -1,152 +1,166 @@
-# SmartPlant
+# SmartPlant - Automated Garden Monitoring System
 
-An Arduino-based garden monitoring and automated watering system. This project uses various sensors to monitor plant health and environmental conditions, with data visualization through ThingSpeak and automated watering functionality.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Arduino](https://img.shields.io/badge/Arduino-00979D?style=for-the-badge&logo=arduino&logoColor=white)](https://www.arduino.cc/)
+
+An Arduino-based garden monitoring and automated watering system. This project uses various sensors to monitor plant health and environmental conditions, with data visualization through ThingSpeak and a smart automated watering functionality.
+
+## Table of Contents
+
+- [Features](#features)
+- [Project Status](#project-status)
+- [Hardware and Software](#hardware-and-software)
+  - [Hardware Requirements](#hardware-requirements)
+  - [Software Dependencies](#software-dependencies)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+- [Hardware Setup](#hardware-setup)
+  - [Pin Configuration](#pin-configuration)
+  - [Wiring Diagrams](#wiring-diagrams)
+- [How It Works](#how-it-works)
+  - [Sensor Monitoring](#sensor-monitoring)
+  - [Smart Watering Logic](#smart-watering-logic)
+  - [ThingSpeak Integration](#thingspeak-integration)
+- [Project Structure](#project-structure)
+- [Development and Testing](#development-and-testing)
+- [3D Printable Cases](#3d-printable-cases)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Features
 
-- Temperature and humidity monitoring using DHT11 sensor
-- Soil moisture monitoring with custom soil moisture sensor
-- Light condition monitoring with LDR (Light Dependent Resistor)
-- Automated watering system with relay-controlled water pump
-- Real-time data display on 16x2 LCD screen
-- Remote monitoring through ThingSpeak platform
-- WiFi connectivity for data transmission
+- **Environment Monitoring**: Real-time tracking of temperature, humidity, soil moisture, and light conditions.
+- **Automated Watering**: Smart watering system that activates a water pump based on soil moisture levels.
+- **Data Display**: Live sensor data shown on a 16x2 LCD screen.
+- **Remote Monitoring**: WiFi connectivity to send data to the ThingSpeak platform for visualization and analysis.
+- **Smart Watering Cycles**: Implements timed watering cycles with absorption periods to prevent overwatering.
 
-## Hardware Requirements
+## Project Status
 
-- Arduino Uno R4 WiFi
-- DHT11 Temperature and Humidity Sensor
-- LDR (Light Dependent Resistor)
-- Custom Soil Moisture Sensor
-- 16x2 LCD Display with I2C adapter
-- Relay Module
-- Water Pump
-- Power Supply
-- Jumper Wires
-- Breadboard (optional)
+This project is considered complete and functional. All features have been implemented and tested.
 
-## Software Dependencies
+## Hardware and Software
 
-The following Arduino libraries are required:
+### Hardware Requirements
 
-- WiFiS3 (for Arduino Uno R4 WiFi)
-- Wire (I2C communication)
-- LiquidCrystal_I2C (LCD display)
-- DHT (DHT11 sensor)
-- ThingSpeak (IoT platform)
+| Component                      | Purpose                                    |
+| ------------------------------ | ------------------------------------------ |
+| Arduino Uno R4 WiFi            | Microcontroller with built-in WiFi         |
+| DHT11 Sensor                   | Measures temperature and humidity          |
+| LDR (Light Dependent Resistor) | Detects light levels (Day/Night)           |
+| Custom Soil Moisture Sensor    | Measures soil moisture content             |
+| 16x2 LCD Display with I2C      | Displays real-time sensor data             |
+| Relay Module                   | Switches the high-voltage water pump       |
+| Water Pump                     | Waters the plant                           |
+| Power Supply                   | Provides power to the system               |
+| Jumper Wires & Breadboard      | Connects all components                    |
 
-## Pin Configuration
+### Software Dependencies
 
-- DHT11 Sensor: Digital Pin 8
-- Light Sensor (LDR): Digital Pin 9
-- Relay: Digital Pin 2
-- Moisture Sensor: Analog Pin A0
-- LCD: I2C connection (SDA/SCL pins)
+The following Arduino libraries are required. You can install them through the Arduino IDE Library Manager.
 
-## Setup Instructions
+- `WiFiS3`
+- `Wire`
+- `LiquidCrystal_I2C`
+- `DHT`
+- `ThingSpeak`
 
-1. Clone this repository
-2. Install required Arduino libraries through the Arduino IDE Library Manager
-3. Create a `arduino_secrets.h` file with your WiFi and ThingSpeak credentials:
-   ```cpp
-   #define SECRET_SSID "your_wifi_ssid"
-   #define SECRET_PASS "your_wifi_password"
-   #define SECRET_WRITE_APIKEY "your_thingspeak_write_api"
-   #define SECRET_CH_ID your_channel_id
-   ```
-4. Connect the hardware components according to the pin configuration
-5. Upload the code to your Arduino Uno R4 WiFi
+## Getting Started
 
-## Operation
+### Prerequisites
 
-The system performs the following operations:
+- Arduino IDE installed on your computer.
+- A ThingSpeak account for data visualization.
 
-- Continuously monitors environmental conditions (temperature, humidity, light, soil moisture)
-- Displays real-time sensor data on the LCD screen
-- Automatically waters the plant when soil moisture falls below set threshold
-- Sends data to ThingSpeak every 15 minutes for remote monitoring
-- Implements smart watering cycles with absorption time between cycles
+### Installation
 
-## ThingSpeak Integration
+1.  **Clone the repository:**
+    ```sh
+    git clone https://github.com/your-username/SmartPlant.git
+    ```
+2.  **Install Libraries:** Open the Arduino IDE and install the libraries listed under [Software Dependencies](#software-dependencies).
+3.  **Configure Secrets:** Create a header file named `arduino_secrets.h` in the main project directory with your WiFi and ThingSpeak credentials:
+    ```cpp
+    #define SECRET_SSID "your_wifi_ssid"
+    #define SECRET_PASS "your_wifi_password"
+    #define SECRET_CH_ID your_thingspeak_channel_id
+    #define SECRET_WRITE_APIKEY "your_thingspeak_write_api_key"
+    ```
+4.  **Hardware Assembly:** Connect the hardware components according to the [Pin Configuration](#pin-configuration) and [Wiring Diagrams](#wiring-diagrams).
+5.  **Upload the Code:** Open `SmartPlant.ino` in the Arduino IDE, select the correct board and port, and upload the sketch.
 
-The system sends the following data to ThingSpeak:
-1. Temperature (°C)
-2. Humidity (%)
-3. Photoperiod (Day/Night)
-4. Soil Moisture (%)
-5. Raw Soil Moisture Value
-6. Water Pump Cycles Count
+## Hardware Setup
 
-## Calibration
+### Pin Configuration
 
-The system includes calibrated values for:
-- Soil Moisture Sensor:
-  - Water Value: 1000
-  - Air Value: 330
-  - Moisture Threshold: 45%
-- Light Sensor: Binary output (0 = day, 1 = night)
+| Component           | Pin on Arduino Uno R4 | Pin Type |
+| ------------------- | --------------------- | -------- |
+| DHT11 Sensor        | Digital Pin 8         | Digital  |
+| Light Sensor (LDR)  | Digital Pin 9         | Digital  |
+| Relay Module        | Digital Pin 2         | Digital  |
+| Soil Moisture Sensor| Analog Pin A0         | Analog   |
+| LCD Display (I2C)   | SDA / SCL             | I2C      |
 
-## Wiring Diagrams
+### Wiring Diagrams
 
-The `Diagrams` folder contains detailed wiring diagrams showing the individual connections for each component to the Arduino UNO R4 WiFi board:
-- DHT11 Temperature and Humidity Sensor connections
-- LDR (Light Dependent Resistor) setup
-- Soil Moisture Sensor wiring
-- LCD Display with I2C adapter connections
-- Relay and Water Pump circuit
+The `Diagrams` folder contains detailed Fritzing diagrams for connecting each component to the Arduino board. These visual guides simplify the hardware setup process.
 
-These diagrams serve as a visual guide for properly connecting each component to the Arduino board, making the hardware setup process more straightforward.
+## How It Works
 
-## 3D Printable Cases
+### Sensor Monitoring
 
-The `3D-Cases` folder contains STL files for 3D printable cases for all components of the project. These cases were sourced from [Printables](https://www.printables.com) and include:
-- Arduino UNO R4 WiFi board case
-- DHT11 sensor housing
-- Soil moisture sensor protection case
-- LDR sensor enclosure
-- LCD display case
-- Relay and water pump housing
+The system continuously reads data from the sensors:
+- **DHT11**: Measures air temperature (°C) and humidity (%).
+- **LDR**: Determines if it's day or night.
+- **Soil Moisture Sensor**: Provides an analog value representing the soil's moisture level, which is then converted to a percentage.
 
-These cases provide protection for the electronic components and give the project a professional finish. Each case file includes the original source link to its Printables page where you can find printing recommendations and additional information.
+### Smart Watering Logic
+
+The watering process is triggered if the soil moisture drops below a predefined threshold (`45%`):
+
+1.  The system initiates a **3-cycle watering process** to ensure proper soil absorption.
+2.  **Watering Cycle**: The water pump runs for 5 seconds.
+3.  **Absorption Pause**: The pump stops for 20 seconds to allow the water to seep into the soil.
+4.  This cycle repeats three times.
+
+The number of watering sessions is tracked and sent to ThingSpeak.
+
+### ThingSpeak Integration
+
+Every 15 minutes, the collected data is sent to a ThingSpeak channel for remote monitoring. The following data fields are used:
+
+- **Field 1**: Temperature (°C)
+- **Field 2**: Humidity (%)
+- **Field 3**: Photoperiod (0 for Day, 1 for Night)
+- **Field 4**: Soil Moisture (%)
+- **Field 5**: Raw Soil Moisture Value
+- **Field 6**: Water Pump Cycle Count
+
+## Project Structure
+
+```
+.SmartPlant/
+├── 3D-Cases/ # STL files for 3D printable cases
+├── DevModules/ # Scripts for calibration and testing
+├── Diagrams/ # Fritzing wiring diagrams
+├── SmartPlant.ino # Main Arduino sketch
+├── arduino_secrets.h.example # Example secrets file
+└── README.md # This file
+```
 
 ## Development and Testing
 
-The project includes several calibration and testing scripts in the `DevModules` directory:
+The `DevModules` directory contains various scripts for calibrating sensors, testing hardware components, and verifying connectivity. These are invaluable for initial setup and troubleshooting.
 
-### Sensor Calibration
-- `Calibrate-DHT11.ino`: Calibration script for the DHT11 temperature and humidity sensor
-- `Calibrate-LDR.ino`: Calibration script for the Light Dependent Resistor
-- `Calibrate-Moist.ino`: Calibration script for the soil moisture sensor
-- `Calibrate-Relay.ino`: Testing script for the relay module and water pump
+## 3D Printable Cases
 
-### Hardware Testing
-- `I2C-Scanner.ino`: Utility to detect I2C devices and their addresses
-- `LCD-I2C-Test.ino`: Testing script for the LCD display with I2C adapter
-- `ProteusTest.ino`: Simulation testing script for Proteus software
-
-### Connectivity Testing
-- `WPA-connect.ino`: WiFi connection testing script
-- `scan_networks.ino`: WiFi network scanning utility
-- `ThingSpeak-Testing.ino`: ThingSpeak connectivity and data transmission testing
-
-### Integration Testing
-- `SmartPlant-Testing.ino`: Complete system testing script with all components
-
-These scripts are essential for:
-- Initial setup and calibration of sensors
-- Troubleshooting hardware connections
-- Testing individual components
-- Verifying WiFi and ThingSpeak connectivity
-- Simulating the system in Proteus before physical implementation
+The `3D-Cases` folder contains STL files for custom enclosures for the project's components, sourced from [Printables](https://www.printables.com). Using these cases provides protection and a clean, professional look to the final assembly.
 
 ## Contributing
 
-Feel free to submit issues, fork the repository, and create pull requests for any improvements.
+Contributions are welcome! Feel free to submit issues, fork the repository, and create pull requests for any improvements.
 
 ## License
 
 This project is open source and available under the [MIT License](LICENSE).
-
-## Last Update
-
-Last modified: January 7, 2025

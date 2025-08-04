@@ -21,7 +21,7 @@ https://www.aliexpress.com/item/1005006344637182.html
  *
  * Calibration with small pot with soil
  *
- * 266 = full in water
+ * 280 = full in water
  * 1021 = full in empty air
  
 */
