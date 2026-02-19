@@ -1,8 +1,9 @@
 // Arduino_secrets.h header file
+// Updated: 2026-02-19
 
 // WiFi Credentials
-#define SECRET_SSID "your_wifi_ssid"
-#define SECRET_PASS "your_wifi_password"
+#define SECRET_SSID "Ardui"
+#define SECRET_PASS "lycalopex590"
 
 // ThingSpeak Credentials
 #define SECRET_WRITE_APIKEY "your_thingspeak_write_api"
