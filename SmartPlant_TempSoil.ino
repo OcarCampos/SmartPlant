@@ -45,7 +45,7 @@ const int AirValue = 330;       // Sensor value in air
 
 // Timing
 unsigned long previousMillis = 0;
-const long intervalThingSpeak = 900000;  // 15 minutes
+const long intervalThingSpeak = 60000;  // 1 minute for testing
 
 void setup() {
     Serial.begin(9600);
@@ -67,7 +67,7 @@ void loop() {
     // Read sensors
     read_sensors();
     
-    // Send data to ThingSpeak every 15 minutes
+    // Send data to ThingSpeak every 1 minute (testing)
     unsigned long currentMillis = millis();
     if (currentMillis - previousMillis >= intervalThingSpeak) {
         previousMillis = currentMillis;
@@ -102,7 +102,11 @@ void read_sensors() {
 void send_to_thing_speak() {
     // Check WiFi connection
     if (status != WL_CONNECTED) {
+        Serial.println("WiFi not connected - reconnecting...");
         connect_to_wifi();
+    } else {
+        Serial.print("WiFi connected. IP: ");
+        Serial.println(WiFi.localIP());
     }
     
     // Set ThingSpeak fields
@@ -114,10 +118,11 @@ void send_to_thing_speak() {
     ThingSpeak.setField(3, soilMoisturePercent);
     
     // Write to ThingSpeak
+    Serial.println("Sending to ThingSpeak...");
     int x = ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
     
     if (x == 200) {
-        Serial.println("ThingSpeak update successful");
+        Serial.println("ThingSpeak update successful!");
     } else {
         Serial.print("ThingSpeak error: ");
         Serial.println(x);
@@ -132,9 +137,8 @@ void connect_to_wifi() {
     }
     
     String fv = WiFi.firmwareVersion();
-    if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
-        Serial.println("Please upgrade WiFi firmware");
-    }
+    Serial.print("WiFi firmware: ");
+    Serial.println(fv);
     
     // Attempt connection
     while (status != WL_CONNECTED) {
@@ -144,7 +148,9 @@ void connect_to_wifi() {
         delay(10000);
     }
     
-    Serial.println("WiFi connected");
+    Serial.println("WiFi connected!");
     Serial.print("IP Address: ");
     Serial.println(WiFi.localIP());
+    Serial.print("Signal strength (RSSI): ");
+    Serial.println(WiFi.RSSI());
 }

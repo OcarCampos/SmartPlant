@@ -40,6 +40,8 @@ An Arduino-based garden monitoring and automated watering system. This project u
 
 This project is considered complete and functional. All features have been implemented and tested.
 
+**SmartPlant v2** (branch: `main`, file: `SmartPlantv2.ino`) is currently in active development and testing. It introduces a robust Arduino Nano-based monitoring station with improved sensor hardware (TEMT6000, AHT10, capacitive soil moisture) for bench validation before full deployment.
+
 ## Hardware and Software
 
 ### Hardware Requirements
@@ -140,14 +142,29 @@ Every 15 minutes, the collected data is sent to a ThingSpeak channel for remote 
 ## Project Structure
 
 ```
-.SmartPlant/
-├── 3D-Cases/ # STL files for 3D printable cases
-├── DevModules/ # Scripts for calibration and testing
-├── Diagrams/ # Fritzing wiring diagrams
-├── SmartPlant.ino # Main Arduino sketch
+SmartPlant/
+├── 3D-Cases/            # STL files for 3D printable cases
+├── DevModules/          # Scripts for calibration and testing
+├── Diagrams/             # Fritzing wiring diagrams
+├── SmartPlant.ino       # Main Arduino sketch (v1 — Arduino Uno R4 WiFi + ThingSpeak)
+├── SmartPlantv2.ino     # Test-bench sketch (v2 — Arduino Nano + sensor validation)
 ├── arduino_secrets.h.example # Example secrets file
-└── README.md # This file
+└── README.md             # This file
 ```
+
+## SmartPlant v2 — Test Bench
+
+For v2 hardware validation (Arduino Nano + sensors), open `SmartPlantv2.ino` in the Arduino IDE.
+
+**Pin configuration (v2):**
+
+| Component | Pin on Arduino Nano | Type |
+|---|---|---|
+| TEMT6000 Light | A0 | Analog |
+| AHT10 (I2C) | A4 (SDA) / A5 (SCL) | I2C |
+| Capacitive Soil Moisture | A1 | Analog |
+
+Upload the sketch and open the Serial Monitor at **9600 baud** to see live sensor readings every 2 seconds.
 
 ## Development and Testing
 
