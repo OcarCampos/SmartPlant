@@ -57,67 +57,77 @@ void loop() {
 }
 
 bool initializeAHT10() {
-  // Send initialization command to AHT10
-  // Command: 0xE1, 0x08, 0x00
+  // Reset the AHT10
+  Wire.beginTransmission(AHT10_ADDRESS);
+  Wire.write(0xBA);  // AHT10 soft reset command
+  byte error = Wire.endTransmission();
+  if (error != 0) {
+    Serial.println("[AHT10] Reset: no response");
+    return false;
+  }
+  delay(20);  // Wait for reset to complete (AHT10 needs ~5ms)
+
+  // Send initialization command (AHT10 = 0xE1, AHT20 = 0xBE)
   Wire.beginTransmission(AHT10_ADDRESS);
   Wire.write(0xE1);
   Wire.write(0x08);
   Wire.write(0x00);
-  byte error = Wire.endTransmission();
-  
+  error = Wire.endTransmission();
   if (error != 0) {
+    Serial.println("[AHT10] Init: no response");
     return false;
   }
-  
-  delay(10);  // Wait for initialization to complete
+  delay(10);
+
   return true;
 }
 
 bool readAHT10() {
-  // Send measurement command to AHT10
-  // Command: 0xAC, 0x33, 0x00
+  // Request a measurement: 0xAC command (trigger reading, no hold)
   Wire.beginTransmission(AHT10_ADDRESS);
   Wire.write(0xAC);
   Wire.write(0x33);
   Wire.write(0x00);
   byte error = Wire.endTransmission();
-  
-  if (error != 0) {
-    return false;
-  }
-  
-  delay(75);  // Wait for measurement to complete (AHT10 needs ~75ms)
-  
-  // Read 6 bytes of data
-  Wire.requestFrom(AHT10_ADDRESS, 6);
-  
-  if (Wire.available() < 6) {
-    return false;
-  }
-  
-  // Read the data bytes
+  if (error != 0) return false;
+
+  delay(80);  // AHT10 needs ~80ms for measurement
+
+  // Read 6 bytes: status + 3 data bytes + 1 status/CRC
+  Wire.requestFrom(AHT10_ADDRESS, (uint8_t)6);
+  if (Wire.available() < 6) return false;
+
   byte statusByte = Wire.read();
-  byte humHigh = Wire.read();
-  byte humLow = Wire.read();
-  byte tempHigh = Wire.read();
-  byte tempLow = Wire.read();
-  byte crc = Wire.read();
-  
-  // Check if measurement is valid (bit 7 of status byte should be 0)
+  byte data1 = Wire.read();  // bits [19:12] of humidity
+  byte data2 = Wire.read();  // bits [11:4] of humidity, bits [19:16] of temp
+  byte data3 = Wire.read();  // bits [15:8] of temperature
+  byte data4 = Wire.read();  // bits [7:0] of temperature (partial status/CRC)
+  byte crc = Wire.read();    // CRC-8
+
+  // Check busy flag (bit 7 of status — should be 0 when data is ready)
   if (statusByte & 0x80) {
+    // Sensor still busy — skip this reading
     return false;
   }
-  
-  // Calculate humidity
-  // Humidity = ((humHigh << 8) | humLow) * 100.0 / 1048576.0
-  uint32_t humRaw = ((uint32_t)humHigh << 8) | humLow;
-  aht10Humidity = (humRaw * 100.0) / 1048576.0;
-  
-  // Calculate temperature
-  // Temperature = ((tempHigh << 8) | tempLow) * 200.0 / 1048576.0 - 50.0
-  uint32_t tempRaw = ((uint32_t)tempHigh << 8) | tempLow;
-  aht10Temperature = (tempRaw * 200.0) / 1048576.0 - 50.0;
-  
+
+  // Extract 20-bit humidity from bits [19:0] of the combined 3-byte field
+  // layout: [hum[19:12] | hum[11:4] | temp[19:16] | temp[15:8] | temp[7:0]]
+  // hum bits occupy: data1 (8 bits) + upper 4 bits of data2 (4 bits)
+  uint32_t humRaw = (((uint32_t)data1) << 8) | ((uint32_t)data2 & 0xF0);
+  humRaw = humRaw >> 4;  // shift right to get proper 20-bit value
+
+  // Extract 20-bit temperature from bits [19:0]
+  // temp bits occupy: lower 4 bits of data2 + data3 (8 bits) + upper 4 bits of data4 (4 bits)
+  uint32_t tempRaw = (((uint32_t)data2 & 0x0F) << 16) | (((uint32_t)data3) << 8) | ((uint32_t)data4 & 0xF0);
+  tempRaw = tempRaw >> 4;  // shift right to get proper 20-bit value
+
+  // Convert to physical units
+  // Humidity: 0..100 %RH  (20-bit max = 1048576)
+  aht10Humidity = ((float)humRaw / 1048576.0) * 100.0;
+
+  // Temperature: -40..125 °C  (20-bit max = 1048576, range = 165°C)
+  aht10Temperature = (((float)tempRaw / 1048576.0) * 165.0) - 45.0;
+
   return true;
 }
 
@@ -167,7 +177,7 @@ void readAndPrintSensors() {
     Serial.print(aht10Humidity, 1);
     Serial.print(" %");
   } else {
-    Serial.print("-- C | Humidity: -- %");
+    Serial.print("--.- °C | Humidity: --.- % [E]");
   }
   
   Serial.print(" | Soil Raw: ");
