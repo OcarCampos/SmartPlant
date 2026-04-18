@@ -63,7 +63,7 @@ bool initializeAHT10() {
   byte error = Wire.endTransmission();
   delay(20);
 
-  // AHT10 init command (0xA8 = initialization, no params needed on AHT10)
+  // AHT10 init command
   Wire.beginTransmission(AHT10_ADDRESS);
   Wire.write(0xA8);
   error = Wire.endTransmission();
@@ -81,16 +81,14 @@ bool initializeAHT10() {
   error = Wire.endTransmission();
   delay(80);
 
-  // Read status to verify sensor is alive
+  // Read status to verify calibration bit
   Wire.requestFrom(AHT10_ADDRESS, (uint8_t)1);
   if (Wire.available() > 0) {
     byte s = Wire.read();
-    Serial.print("[AHT10] Status byte after init: 0x");
-    Serial.println(s, HEX);
     if (s & 0x08) {
-      Serial.println("[AHT10] Calibration OK");
+      Serial.println("[AHT10] Calibrated and ready");
     } else {
-      Serial.println("[AHT10] WARNING: calibration bit not set");
+      Serial.println("[AHT10] Warning: calibration bit not set");
     }
   }
 
@@ -118,33 +116,20 @@ bool readAHT10() {
   byte b4 = Wire.read();           // temp[7:0] (upper nibble used, lower = status/CRC)
   byte crc = Wire.read();          // CRC-8
 
-  // Debug: print raw bytes every reading
-  Serial.print("[AHT10 RAW] s=0x");
-  Serial.print(s, HEX);
-  Serial.print(" b1=0x");
-  Serial.print(b1, HEX);
-  Serial.print(" b2=0x");
-  Serial.print(b2, HEX);
-  Serial.print(" b3=0x");
-  Serial.print(b3, HEX);
-  Serial.print(" b4=0x");
-  Serial.print(b4, HEX);
-  Serial.print(" crc=0x");
-  Serial.println(crc, HEX);
-
   if (s & 0x80) return false;  // busy flag
 
-  // AHT10/AHT20 standard 20-bit extraction
-  uint32_t humRaw = (((uint32_t)b1) << 12) | (((uint32_t)b2) << 4) | (((uint32_t)b3) >> 4);
-  uint32_t tempRaw = ((((uint32_t)b2) & 0x0F) << 16) | (((uint32_t)b3) << 8) | ((uint32_t)b4);
+  // AHT10 20-bit extraction (verified against real sensor data):
+  // b1 = hum[19:12], b2 upper nibble = hum[11:8], b2 lower nibble = temp[19:16]
+  // b3 = temp[15:8], b4 upper nibble = temp[7:4]
+  // Humidity: 20-bit value from b1 + upper nibble of b2
+  uint32_t hum_raw = (((uint32_t)b1 << 12) | ((uint32_t)b2 << 4)) & 0x0FFFFF;
 
-  Serial.print("[AHT10] humRaw=0x");
-  Serial.print(humRaw, HEX);
-  Serial.print(" tempRaw=0x");
-  Serial.println(tempRaw, HEX);
+  // Temperature: 20-bit value from lower nibble of b2 + b3 + upper nibble of b4
+  uint32_t temp_raw = (((uint32_t)b2 & 0x0F) << 16) | (((uint32_t)b3) << 8) | ((uint32_t)b4 & 0xF0);
 
-  aht10Humidity = ((float)humRaw / 1048576.0) * 100.0;
-  aht10Temperature = (((float)tempRaw / 1048576.0) * 165.0) - 45.0;
+  // Convert to physical units
+  aht10Humidity = (hum_raw / 1048576.0) * 100.0;
+  aht10Temperature = ((temp_raw / 1048576.0) * 165.0) - 45.0;
 
   return true;
 }
