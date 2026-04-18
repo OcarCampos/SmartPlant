@@ -57,33 +57,48 @@ void loop() {
 }
 
 bool initializeAHT10() {
-  // Reset the AHT10
+  // AHT10 soft reset — recommended before init
   Wire.beginTransmission(AHT10_ADDRESS);
-  Wire.write(0xBA);  // AHT10 soft reset command
+  Wire.write(0xBA);
   byte error = Wire.endTransmission();
-  if (error != 0) {
-    Serial.println("[AHT10] Reset: no response");
-    return false;
-  }
-  delay(20);  // Wait for reset to complete (AHT10 needs ~5ms)
+  delay(20);
 
-  // Send initialization command (AHT10 = 0xE1, AHT20 = 0xBE)
+  // AHT10 init command (0xA8 = initialization, no params needed on AHT10)
   Wire.beginTransmission(AHT10_ADDRESS);
-  Wire.write(0xE1);
-  Wire.write(0x08);
-  Wire.write(0x00);
+  Wire.write(0xA8);
   error = Wire.endTransmission();
   if (error != 0) {
-    Serial.println("[AHT10] Init: no response");
+    Serial.println("[AHT10] Init: no ACK");
     return false;
   }
   delay(10);
+
+  // Trigger first measurement to activate sensor
+  Wire.beginTransmission(AHT10_ADDRESS);
+  Wire.write(0xAC);
+  Wire.write(0x33);
+  Wire.write(0x00);
+  error = Wire.endTransmission();
+  delay(80);
+
+  // Read status to verify sensor is alive
+  Wire.requestFrom(AHT10_ADDRESS, (uint8_t)1);
+  if (Wire.available() > 0) {
+    byte s = Wire.read();
+    Serial.print("[AHT10] Status byte after init: 0x");
+    Serial.println(s, HEX);
+    if (s & 0x08) {
+      Serial.println("[AHT10] Calibration OK");
+    } else {
+      Serial.println("[AHT10] WARNING: calibration bit not set");
+    }
+  }
 
   return true;
 }
 
 bool readAHT10() {
-  // Request a measurement: 0xAC command (trigger reading, no hold)
+  // Trigger measurement
   Wire.beginTransmission(AHT10_ADDRESS);
   Wire.write(0xAC);
   Wire.write(0x33);
@@ -91,41 +106,44 @@ bool readAHT10() {
   byte error = Wire.endTransmission();
   if (error != 0) return false;
 
-  delay(80);  // AHT10 needs ~80ms for measurement
+  delay(80);
 
-  // Read 6 bytes: status + 3 data bytes + 1 status/CRC
   Wire.requestFrom(AHT10_ADDRESS, (uint8_t)6);
   if (Wire.available() < 6) return false;
 
-  byte statusByte = Wire.read();
-  byte data1 = Wire.read();  // bits [19:12] of humidity
-  byte data2 = Wire.read();  // bits [11:4] of humidity, bits [19:16] of temp
-  byte data3 = Wire.read();  // bits [15:8] of temperature
-  byte data4 = Wire.read();  // bits [7:0] of temperature (partial status/CRC)
-  byte crc = Wire.read();    // CRC-8
+  byte s = Wire.read();           // status
+  byte b1 = Wire.read();           // hum[19:12]
+  byte b2 = Wire.read();           // hum[11:4] | temp[19:16]
+  byte b3 = Wire.read();           // temp[15:8]
+  byte b4 = Wire.read();           // temp[7:0] (upper nibble used, lower = status/CRC)
+  byte crc = Wire.read();          // CRC-8
 
-  // Check busy flag (bit 7 of status — should be 0 when data is ready)
-  if (statusByte & 0x80) {
-    // Sensor still busy — skip this reading
-    return false;
-  }
+  // Debug: print raw bytes every reading
+  Serial.print("[AHT10 RAW] s=0x");
+  Serial.print(s, HEX);
+  Serial.print(" b1=0x");
+  Serial.print(b1, HEX);
+  Serial.print(" b2=0x");
+  Serial.print(b2, HEX);
+  Serial.print(" b3=0x");
+  Serial.print(b3, HEX);
+  Serial.print(" b4=0x");
+  Serial.print(b4, HEX);
+  Serial.print(" crc=0x");
+  Serial.println(crc, HEX);
 
-  // Extract 20-bit humidity from bits [19:0] of the combined 3-byte field
-  // layout: [hum[19:12] | hum[11:4] | temp[19:16] | temp[15:8] | temp[7:0]]
-  // hum bits occupy: data1 (8 bits) + upper 4 bits of data2 (4 bits)
-  uint32_t humRaw = (((uint32_t)data1) << 8) | ((uint32_t)data2 & 0xF0);
-  humRaw = humRaw >> 4;  // shift right to get proper 20-bit value
+  if (s & 0x80) return false;  // busy flag
 
-  // Extract 20-bit temperature from bits [19:0]
-  // temp bits occupy: lower 4 bits of data2 + data3 (8 bits) + upper 4 bits of data4 (4 bits)
-  uint32_t tempRaw = (((uint32_t)data2 & 0x0F) << 16) | (((uint32_t)data3) << 8) | ((uint32_t)data4 & 0xF0);
-  tempRaw = tempRaw >> 4;  // shift right to get proper 20-bit value
+  // AHT10/AHT20 standard 20-bit extraction
+  uint32_t humRaw = (((uint32_t)b1) << 12) | (((uint32_t)b2) << 4) | (((uint32_t)b3) >> 4);
+  uint32_t tempRaw = ((((uint32_t)b2) & 0x0F) << 16) | (((uint32_t)b3) << 8) | ((uint32_t)b4);
 
-  // Convert to physical units
-  // Humidity: 0..100 %RH  (20-bit max = 1048576)
+  Serial.print("[AHT10] humRaw=0x");
+  Serial.print(humRaw, HEX);
+  Serial.print(" tempRaw=0x");
+  Serial.println(tempRaw, HEX);
+
   aht10Humidity = ((float)humRaw / 1048576.0) * 100.0;
-
-  // Temperature: -40..125 °C  (20-bit max = 1048576, range = 165°C)
   aht10Temperature = (((float)tempRaw / 1048576.0) * 165.0) - 45.0;
 
   return true;
