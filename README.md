@@ -154,7 +154,12 @@ SmartPlant/
 
 ## SmartPlant v2 — Test Bench
 
-For v2 hardware validation (Arduino Nano + sensors), open `SmartPlantv2.ino` in the Arduino IDE.
+For v2 hardware validation (Arduino Nano + sensors), open `SmartPlantv2.ino` in the Arduino IDE. This version is optimized for stability and modularity.
+
+**Key Updates:**
+- **Modular Data**: Uses C++ `structs` to return multiple sensor values for cleaner code.
+- **Improved Logging**: Centralized horizontal data log for easier real-time monitoring.
+- **Capacitive Sensing**: Switched to capacitive soil monitoring (corrosion-resistant).
 
 **Pin configuration (v2):**
 
@@ -164,7 +169,25 @@ For v2 hardware validation (Arduino Nano + sensors), open `SmartPlantv2.ino` in 
 | AHT10 (I2C) | A4 (SDA) / A5 (SCL) | I2C |
 | Capacitive Soil Moisture | A1 | Analog |
 
-Upload the sketch and open the Serial Monitor at **9600 baud** to see live sensor readings every 2 seconds.
+**Horizontal Data Format:**
+`[SmartPlant v2] Data -> Temp: 24.5°C | Hum: 45.2% | Light: 150 lux | Soil Raw: 420`
+
+## Sensor Calibration
+
+To get accurate readings in your final deployment, consider the following calibration steps:
+
+### 1. Capacitive Soil Moisture (CRITICAL)
+Every capacitive sensor is different. You need to find your specific "Dry" and "Wet" values:
+1.  Hold the sensor in **Air** and record the `Soil Raw` value (e.g., `600`).
+2.  Submerge the sensor in **Water** (up to the white line) and record the value (e.g., `250`).
+3.  Use the `map()` function in your code to convert raw values to 0-100%.
+
+### 2. TEMT6000 Light Sensor
+The lux calculation (`voltage * 200.0`) is an approximation. For better accuracy:
+- Compare it against a lux meter app on your smartphone and adjust the multiplier (`200.0`) until the values match.
+
+### 3. AHT10 Temp/Humidity
+- This sensor is factory-calibrated. No user calibration is typically required.
 
 ## Development and Testing
 
