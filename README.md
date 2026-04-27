@@ -42,6 +42,8 @@ This project is considered complete and functional. All features have been imple
 
 **SmartPlant v2** (branch: `main`, file: `SmartPlantv2.ino`) is currently in active development and testing. It introduces a robust Arduino Nano-based monitoring station with improved sensor hardware (TEMT6000, AHT10, capacitive soil moisture) for bench validation before full deployment.
 
+We have recently added **SmartPlantv2-uno.ino** which integrates the improved v2 sensors with the Arduino Uno R4 WiFi to report data directly to ThingSpeak, omitting the LCD and water pump for a streamlined monitoring experience.
+
 ## Hardware and Software
 
 ### Hardware Requirements
@@ -134,10 +136,10 @@ Every 15 minutes, the collected data is sent to a ThingSpeak channel for remote 
 
 - **Field 1**: Temperature (°C)
 - **Field 2**: Humidity (%)
-- **Field 3**: Photoperiod (0 for Day, 1 for Night)
+- **Field 3**: Photoperiod (0 for Day, 1 for Night in v1) or Light Intensity (Lux in v2)
 - **Field 4**: Soil Moisture (%)
 - **Field 5**: Raw Soil Moisture Value
-- **Field 6**: Water Pump Cycle Count
+- **Field 6**: Water Pump Cycle Count (v1 only)
 
 ## Project Structure
 
@@ -148,6 +150,7 @@ SmartPlant/
 ├── Diagrams/             # Fritzing wiring diagrams
 ├── SmartPlant.ino       # Main Arduino sketch (v1 — Arduino Uno R4 WiFi + ThingSpeak)
 ├── SmartPlantv2.ino     # Test-bench sketch (v2 — Arduino Nano + sensor validation)
+├── SmartPlantv2-uno.ino # Integrated sketch (v2 sensors + Arduino Uno R4 WiFi + ThingSpeak)
 ├── arduino_secrets.h.example # Example secrets file
 └── README.md             # This file
 ```
