@@ -34,7 +34,7 @@ void setup() {
   
   // Connect to Network
   Serial.println("Attempting to connect to WiFi...");
-  String connectCmd = "AT+CWJAP=\"Jacinto\",\"lycalopex590\"";
+  String connectCmd = "AT+CWJAP=\"YOUR_SSID\",\"YOUR_PASSWORD\"";
   String response = sendAT(connectCmd, 15000); // Increased timeout to 15s to allow for connection
 
   Serial.println("\n-----------------------------------");
