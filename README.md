@@ -44,6 +44,8 @@ This project is considered complete and functional. All features have been imple
 
 We have recently added **SmartPlantv2-uno.ino** which integrates the improved v2 sensors with the Arduino Uno R4 WiFi to report data directly to ThingSpeak, omitting the LCD and water pump for a streamlined monitoring experience.
 
+The latest production-ready field device is **SmartPlantv2-ESP32c.ino**, designed for the ultra-compact ESP32-C3 Super Mini. This version utilizes Deep Sleep for power efficiency, features a robust debug mode, and uses an inverted sinking-LED logic for physical status indication.
+
 ## Hardware and Software
 
 ### Hardware Requirements
@@ -151,6 +153,7 @@ SmartPlant/
 ├── SmartPlant.ino       # Main Arduino sketch (v1 — Arduino Uno R4 WiFi + ThingSpeak)
 ├── SmartPlantv2.ino     # Test-bench sketch (v2 — Arduino Nano + sensor validation)
 ├── SmartPlantv2-uno.ino # Integrated sketch (v2 sensors + Arduino Uno R4 WiFi + ThingSpeak)
+├── SmartPlantv2-ESP32c.ino # Production field sketch (ESP32-C3 Super Mini + ThingSpeak + Deep Sleep)
 ├── arduino_secrets.h.example # Example secrets file
 └── README.md             # This file
 ```
@@ -174,6 +177,30 @@ For v2 hardware validation (Arduino Nano + sensors), open `SmartPlantv2.ino` in 
 
 **Horizontal Data Format:**
 `[SmartPlant v2] Data -> Temp: 24.5°C | Hum: 45.2% | Light: 150 lux | Soil Raw: 420`
+
+## SmartPlant v2 — ESP32-C3 Production Device
+
+The `SmartPlantv2-ESP32c.ino` sketch is the highly optimized, production-ready version designed to run on the **ESP32-C3 Super Mini**. It is designed to be deployed in the field using minimal power.
+
+**Key Features:**
+- **Deep Sleep**: The device sleeps for 15 minutes between ThingSpeak updates to conserve power.
+- **Sinking LED Logic**: Uses an inverted logic (LOW = ON, HIGH = OFF) for Green, Yellow, and Red status LEDs.
+- **Debug Mode**: A toggleable `DEBUG` constant allows for rich Serial Monitor logging during bench testing.
+- **WiFi Power Fix**: Includes a critical fix (`WiFi.setTxPower(WIFI_POWER_8_5dBm)`) required for the ESP32-C3 Super Mini to connect reliably to Wi-Fi without crashing due to power spikes.
+
+**Pin configuration (ESP32-C3):**
+
+| Component | Pin on ESP32-C3 Super Mini | Type |
+|---|---|---|
+| TEMT6000 Light | GPIO 0 (ADC1) | Analog |
+| AHT10 (I2C) | GPIO 8 (SDA) / GPIO 9 (SCL) | I2C |
+| Green LED | GPIO 4 | Digital (Sinking) |
+| Yellow LED | GPIO 5 | Digital (Sinking) |
+| Red LED | GPIO 6 | Digital (Sinking) |
+
+> [!WARNING]
+> **ESP32-C3 Super Mini Wi-Fi Antenna Issue:**
+> This specific microcontroller board has a known hardware limitation with its ceramic antenna and internal voltage regulator. When attempting to connect to Wi-Fi at default TX power levels, the sudden current draw (300-500mA) can cause the Wi-Fi radio to brown-out and fail to connect indefinitely. To solve this, the code explicitly limits the transmit power using `WiFi.setTxPower(WIFI_POWER_8_5dBm)`. If you port this code to a different ESP32 board, you may safely remove or increase this limit.
 
 ## Sensor Calibration
 
