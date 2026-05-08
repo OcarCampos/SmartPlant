@@ -12,10 +12,10 @@
 #define I2C_SCL 9
 
 // CONSTANTS
-const char* ssid = "Jacinto";
-const char* password = "lycalopex590";
-unsigned long myChannelNumber = 2785218;
-const char* myWriteAPIKey = "TLEAEKJTAL4800RP";
+const char* ssid = "YOUR SSID";
+const char* password = "YOUR PASSWORD";
+unsigned long myChannelNumber = YOUR_CHANNEL_ID;
+const char* myWriteAPIKey = "YOUR API KEY";
 
 // Deep Sleep Interval (15 minutes in microseconds)
 #define uS_TO_S_FACTOR 1000000ULL
