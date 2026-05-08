@@ -11,11 +11,13 @@
 #define I2C_SDA 8
 #define I2C_SCL 9
 
+#include "arduino_secrets.h"
+
 // CONSTANTS
-const char* ssid = "YOUR SSID";
-const char* password = "YOUR PASSWORD";
-unsigned long myChannelNumber = YOUR_CHANNEL_ID;
-const char* myWriteAPIKey = "YOUR API KEY";
+const char* ssid = SECRET_SSID;
+const char* password = SECRET_PASS;
+unsigned long myChannelNumber = SECRET_CH_ID;
+const char* myWriteAPIKey = SECRET_WRITE_APIKEY;
 
 // Deep Sleep Interval (15 minutes in microseconds)
 #define uS_TO_S_FACTOR 1000000ULL
