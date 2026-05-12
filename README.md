@@ -199,6 +199,10 @@ The `SmartPlantv2-ESP32c.ino` sketch is the highly optimized, production-ready v
 | Red LED | GPIO 6 | Digital (Sinking) |
 
 > [!WARNING]
+> **Avoid Strapping Pins for Analog Sensors (GPIO 2, 8, 9):**
+> Do not use **GPIO 2** for analog sensors like the TEMT6000. GPIO 2 is a "strapping pin" used to determine the chip's boot mode, and the Super Mini board features a physical hardwired pull-up resistor (typically 10k) on this pin to ensure proper booting. Connecting a sensor to GPIO 2 creates a voltage divider that completely skews the readings (e.g., forcing a light sensor to read ~1.6V even in pitch black). Always use a safe, unencumbered ADC1 pin like **GPIO 0**, **GPIO 1**, or **GPIO 3** for analog inputs.
+
+> [!WARNING]
 > **ESP32-C3 Super Mini Wi-Fi Antenna Issue:**
 > This specific microcontroller board has a known hardware limitation with its ceramic antenna and internal voltage regulator. When attempting to connect to Wi-Fi at default TX power levels, the sudden current draw (300-500mA) can cause the Wi-Fi radio to brown-out and fail to connect indefinitely. To solve this, the code explicitly limits the transmit power using `WiFi.setTxPower(WIFI_POWER_8_5dBm)`. If you port this code to a different ESP32 board, you may safely remove or increase this limit.
 

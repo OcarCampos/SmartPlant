@@ -58,6 +58,7 @@ void setup() {
   }
 
   // Initialize Pins
+  pinMode(TEMT_PIN, INPUT);
   pinMode(LED_GREEN, OUTPUT);
   pinMode(LED_YELLOW, OUTPUT);
   pinMode(LED_RED, OUTPUT);
@@ -78,7 +79,7 @@ void setup() {
   sensors_event_t humidity, temp;
   aht.getEvent(&humidity, &temp);
   int lightRaw = analogRead(TEMT_PIN);
-  float lightVoltage = lightRaw * (3.3 / 4095.0);
+  float lightVoltage = analogReadMilliVolts(TEMT_PIN) / 1000.0; // Use hardware calibrated millivolts
   float lightLevel = lightVoltage * 200.0;  // Same conversion factor as UNO version
 
   if (DEBUG) {
