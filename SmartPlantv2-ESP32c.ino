@@ -77,12 +77,15 @@ void setup() {
   // 2. READ SENSORS
   sensors_event_t humidity, temp;
   aht.getEvent(&humidity, &temp);
-  int lightLevel = analogRead(TEMT_PIN);
+  int lightRaw = analogRead(TEMT_PIN);
+  float lightVoltage = lightRaw * (3.3 / 4095.0);
+  float lightLevel = lightVoltage * 200.0;  // Same conversion factor as UNO version
 
   if (DEBUG) {
     Serial.print("[SmartPlant v2] Data -> Temp: "); Serial.print(temp.temperature);
     Serial.print("°C | Hum: "); Serial.print(humidity.relative_humidity);
-    Serial.print("% | Light: "); Serial.println(lightLevel);
+    Serial.print("% | Light: "); Serial.print(lightLevel);
+    Serial.print(" lux (raw: "); Serial.print(lightRaw); Serial.println(")");
   }
 
   // 3. WIFI CONNECTION
